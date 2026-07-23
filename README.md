@@ -1,143 +1,134 @@
-# 🦈 Deep Ocean - Fish vs Shark AI Simulation
+<div align="center">
 
-A stunning 2D simulation where fish learn to escape from a sweeping shark using **Deep Reinforcement Learning**.
+# 🌊 Deep Ocean
 
-<p align="center">
-  <img src="demo.gif" width="640" alt="Deep Ocean simulation — fish evading the shark"/>
-</p>
+**Learn to escape the shark — a top-down reinforcement-learning arena.**
 
+A single fish learns to evade a relentless, pursuing shark inside a circular
+arena. Because the policy is trained purely *egocentrically* (everything it sees
+is relative to itself), the exact same brain then drives a whole **swarm** — each
+fish reacting to the shark from its own point of view.
 
-## 🎮 Overview
+[![CI](https://github.com/yferc/predators/actions/workflows/ci.yml/badge.svg)](https://github.com/yferc/predators/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.9%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Code style](https://img.shields.io/badge/lint-ruff-purple)
 
-Watch as AI-controlled fish develop survival instincts through learning:
+<img src="docs/media/demo.gif" width="520" alt="A swarm of fish evading the shark"/>
 
-- **🦈 One Big Shark** - Sweeps horizontally across the ocean, unstoppable predator
-- **🐟 School of Fish** - Share a neural network, learn to escape together  
-- **👁️ Raycast Vision** - Fish "see" the shark and walls through 24 directional rays
-- **🧠 PPO Algorithm** - State-of-the-art Deep RL for learning escape strategies
+*One PPO brain, shared across the whole school.*
 
-## ✨ Features
-
-- **Beautiful Pygame Visualization**
-  - Animated shark with realistic movement
-  - Colorful fish with trailing effects
-  - Underwater caustics and bubbles
-  - Particle effects on fish death
-
-- **Deep Reinforcement Learning**
-  - Shared policy network (all fish use same "brain")
-  - Raycast-based observations (24 rays detecting shark/walls)
-  - PPO (Proximal Policy Optimization) training
-  - PyTorch implementation
-
-## 🚀 Quick Start
-
-### Installation
-
-```bash
-# Clone repo
-git clone https://github.com/yferc/predators.git
-cd predators
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-### Watch Random Agents (No Training)
-
-```bash
-python watch_random.py
-```
-
-See untrained fish swimming randomly - they'll get eaten quickly!
-
-### Train the Fish
-
-```bash
-python train.py
-```
-
-Watch fish learn to escape over time.
-
-### Record Video
-
-```bash
-python watch_random.py --record
-```
-
-## 🎯 How It Works
-
-### Environment
-- **Ocean**: 800×600 pixel continuous space
-- **Shark**: Sweeps horizontally, moves up after each pass
-- **Fish**: 15 fish, each with raycast vision
-
-### Observation Space (per fish)
-| Component | Size | Description |
-|-----------|------|-------------|
-| Shark rays | 24 | Distance to shark in each direction |
-| Wall rays | 24 | Distance to walls in each direction |
-| Shark direction | 2 | Relative x, y to shark |
-| Shark distance | 1 | Normalized distance |
-| Velocity | 2 | Current fish velocity |
-| **Total** | **53** | |
-
-### Action Space
-- Continuous 2D: `(dx, dy)` acceleration in range `[-1, 1]`
-
-### Rewards
-| Event | Reward |
-|-------|--------|
-| Survival (per step) | +0.1 |
-| Distance from shark | +0.05 (if far) |
-| Getting eaten | -10.0 |
-
-## 📁 Project Structure
-
-```
-predators/
-├── environment.py      # Gym-compatible ocean environment
-├── visualization.py    # Pygame renderer with effects
-├── train.py           # PPO training implementation
-├── watch_random.py    # Demo with random agents
-├── requirements.txt   # Dependencies
-└── README.md
-```
-
-## 🎬 Creating Content
-
-The visualization is designed to be **visually engaging** for social media:
-
-1. Run `python watch_random.py --record` to capture footage
-2. The underwater effects, colorful fish, and dramatic shark create eye-catching content
-3. Perfect for Instagram Reels, YouTube Shorts, TikTok
-
-## 🛠️ Configuration
-
-Edit parameters in `environment.py`:
-
-```python
-OceanEnvironment(
-    width=800,          # Ocean width
-    height=600,         # Ocean height
-    num_fish=15,        # Number of fish
-    num_rays=24,        # Raycast resolution
-    shark_speed=2.0,    # Shark movement speed
-    fish_speed=4.0,     # Max fish speed
-)
-```
-
-## 📈 Training Progress
-
-After training, you should see:
-- **Early**: Fish swim randomly, most get eaten
-- **Mid**: Fish start avoiding shark's path
-- **Late**: Fish develop coordinated escape strategies
-
-## 📝 License
-
-MIT License - Use freely for learning and portfolio!
+</div>
 
 ---
 
-*Built with 🐟 PyTorch + Pygame for AI portfolio demonstration*
+## Why this exists
+
+A compact study in **RL environment design** with a twist that makes it look
+great: train one agent, deploy many. The environment is fast (pure-NumPy
+point-mass physics), the reward is simple and honest (survive, keep your
+distance, don't hug the wall), and the renderer is built for a clean, neon,
+top-down aesthetic.
+
+## Features
+
+- 🎮 **Clean Gymnasium API** — passes `gymnasium.utils.env_checker`, drops straight into Stable-Baselines3.
+- 🦈 **A smart, pursuing shark** — steers toward its prey each step, capped just below fish top speed so evasion is genuinely possible (and genuinely hard).
+- 🧠 **Egocentric policy → emergent swarm** — trained on one fish, rendered as a whole school sharing the same brain.
+- 🎨 **Stylish top-down renderer** — glowing circular arena, radial-gradient sea, fish as arrowheads with fading trails.
+- ✅ **Tested & linted** — behaviour tests (task-is-learnable, shark-catches-idle-fish) and CI on Python 3.10–3.12.
+
+## How it works
+
+### The arena
+A unit circle. Fish and shark are damped point masses; the wall reflects them.
+
+### The shark
+Each step the shark accelerates toward its target (in the swarm demo, the
+nearest living fish), capped at `SHARK_MAX_SPEED` — deliberately a touch slower
+than the fish, so a clever fish can escape but a careless one is lunch.
+
+### Observation — `Box(shape=(9,))`
+Everything relative to the fish: shark position (2), shark velocity (2), own
+velocity (2), own radial position (2, i.e. how close to the wall), and shark
+distance (1). This egocentric framing is what lets one policy generalise to a
+whole swarm.
+
+### Action — `Box(shape=(2,), [-1, 1])`
+A 2-D acceleration command.
+
+### Reward
+```
++ survive            small reward each step
++ keep distance      scaled by distance to the shark
+- hug the wall       penalty for cowering on the boundary
+- caught             large penalty, episode ends
+```
+
+## Quickstart
+
+```bash
+git clone https://github.com/yferc/predators.git
+cd predators
+pip install -e ".[train,media]"
+
+python scripts/train.py --timesteps 800000       # train the evasion policy
+python scripts/record.py --model models/best/best_model.zip --out docs/media/demo
+```
+
+Watch a single fish live:
+
+```python
+import gymnasium as gym, deepocean
+from stable_baselines3 import PPO
+
+env = gym.make("DeepOcean-v0", render_mode="human")
+model = PPO.load("models/best/best_model.zip")
+obs, _ = env.reset()
+done = False
+while not done:
+    action, _ = model.predict(obs, deterministic=True)
+    obs, r, term, trunc, _ = env.step(action)
+    env.render(); done = term or trunc
+```
+
+## Results
+
+PPO trained for **800k timesteps** (8 parallel envs, a few minutes on CPU), then
+evaluated with a **deterministic** policy over **30 fresh episodes**:
+
+| Metric | Value |
+| --- | --- |
+| Mean survival | **600 / 600 steps (30.0 s)** |
+| Full-episode escapes | **30 / 30 (100%)** |
+
+A single trained fish evades the shark indefinitely. In the swarm demo above,
+one copy of that policy drives every fish (with a touch of per-fish noise so the
+school spreads out rather than stacking), and the shark hunts the nearest — so
+some fish do get caught, which is what makes it fun to watch.
+
+## Project structure
+
+```
+predators/
+├── deepocean/
+│   ├── env.py        # DeepOcean-v0 — the Gymnasium environment
+│   ├── dynamics.py   # shared point-mass physics + shark pursuit
+│   └── render.py     # stylish top-down neon renderer
+├── scripts/
+│   ├── train.py      # PPO training
+│   └── record.py     # swarm demo → GIF + MP4
+├── tests/
+└── .github/workflows/ci.yml
+```
+
+## Testing
+
+```bash
+pip install -e ".[dev]"
+pytest -q
+```
+
+## License
+
+MIT — see [LICENSE](LICENSE).
