@@ -2,7 +2,6 @@
 
 A stunning 2D simulation where fish learn to escape from a sweeping shark using **Deep Reinforcement Learning**.
 
-![Demo](demo.gif)
 
 ## 🎮 Overview
 
