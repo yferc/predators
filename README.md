@@ -2,6 +2,10 @@
 
 A stunning 2D simulation where fish learn to escape from a sweeping shark using **Deep Reinforcement Learning**.
 
+<p align="center">
+  <img src="demo.gif" width="640" alt="Deep Ocean simulation — fish evading the shark"/>
+</p>
+
 
 ## 🎮 Overview
 
@@ -32,7 +36,7 @@ Watch as AI-controlled fish develop survival instincts through learning:
 
 ```bash
 # Clone repo
-git clone https://github.com/yahia-ferchichi/predators.git
+git clone https://github.com/yferc/predators.git
 cd predators
 
 # Install dependencies
